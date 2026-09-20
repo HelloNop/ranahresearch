@@ -1,0 +1,17 @@
+{
+  "name": "ranahresearch",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace @ranahresearch/web",
+    "build": "npm run build --workspace @ranahresearch/web",
+    "start": "npm run start --workspace @ranahresearch/web",
+    "lint": "npm run lint --workspace @ranahresearch/web",
+    "typecheck": "npm run typecheck --workspace @ranahresearch/web"
+  }
+}

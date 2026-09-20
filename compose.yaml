@@ -1,0 +1,91 @@
+name: ranahresearch
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.6-pg16-trixie
+    environment:
+      POSTGRES_USER: ranah
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ranah-local-only}
+      POSTGRES_DB: ranahresearch
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/001-vector.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U ranah -d ranahresearch"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  temporal:
+    image: temporalio/auto-setup:1.29.1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB: postgres12
+      DB_PORT: "5432"
+      POSTGRES_USER: ranah
+      POSTGRES_PWD: ${POSTGRES_PASSWORD:-ranah-local-only}
+      POSTGRES_SEEDS: postgres
+      DBNAME: temporal
+      VISIBILITY_DBNAME: temporal_visibility
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_CLI_ADDRESS: temporal:7233
+    ports:
+      - "127.0.0.1:${TEMPORAL_PORT:-7233}:7233"
+    healthcheck:
+      test: [CMD, temporal, --address, temporal:7233, operator, cluster, health]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  temporal-ui:
+    image: temporalio/ui:2.34.0
+    depends_on:
+      temporal:
+        condition: service_healthy
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+    ports:
+      - "127.0.0.1:${TEMPORAL_UI_PORT:-8080}:8080"
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-07-23T15-54-02Z
+    command: server /data --console-address :9001
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID:-ranah-local}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:-ranah-local-secret}
+    ports:
+      - "127.0.0.1:${S3_PORT:-9000}:9000"
+      - "127.0.0.1:${S3_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - object-data:/data
+    healthcheck:
+      test: [CMD, curl, -f, http://localhost:9000/minio/health/ready]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  minio-init:
+    profiles: [tools]
+    volumes:
+      - ./infra/s3-check.sh:/checks/s3-check.sh:ro
+    image: quay.io/minio/minio:RELEASE.2025-07-23T15-54-02Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-ranah-local}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-ranah-local-secret}
+      S3_BUCKET: ${S3_BUCKET:-ranahresearch}
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - |
+        mc alias set local http://minio:9000 "$$S3_ACCESS_KEY_ID" "$$S3_SECRET_ACCESS_KEY"
+        mc mb --ignore-existing "local/$$S3_BUCKET"
+
+volumes:
+  postgres-data:
+  object-data:

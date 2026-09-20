@@ -1,0 +1,1 @@
+"""RanahResearch domain package."""
