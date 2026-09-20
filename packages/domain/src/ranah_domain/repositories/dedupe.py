@@ -1,3 +1,6 @@
+import uuid
+
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ranah_domain.models.dedupe import DuplicateDecision, DuplicateGroup, DuplicateMember
@@ -13,6 +16,25 @@ async def create_group(session: AsyncSession, data: DuplicateGroupCreate) -> Dup
     session.add(group)
     await session.flush()
     return group
+
+
+async def find_group_containing_pair(
+    session: AsyncSession, work_id_a: uuid.UUID, work_id_b: uuid.UUID
+) -> DuplicateGroup | None:
+    """Idempotency guard: is there already a group containing both of these works?
+    Re-running dedupe on the same pair should not spawn a second DuplicateGroup."""
+    groups_with_a = select(DuplicateMember.duplicate_group_id).where(
+        DuplicateMember.work_id == work_id_a
+    )
+    stmt = (
+        select(DuplicateGroup)
+        .join(DuplicateMember, DuplicateMember.duplicate_group_id == DuplicateGroup.id)
+        .where(
+            DuplicateMember.work_id == work_id_b,
+            DuplicateGroup.id.in_(groups_with_a),
+        )
+    )
+    return (await session.scalars(stmt)).first()
 
 
 async def add_member(session: AsyncSession, data: DuplicateMemberCreate) -> DuplicateMember:

@@ -941,12 +941,14 @@ source = { editable = "packages/literature" }
 dependencies = [
     { name = "httpx" },
     { name = "pydantic" },
+    { name = "ranah-domain" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "httpx", specifier = ">=0.28,<1" },
     { name = "pydantic", specifier = ">=2.9,<3" },
+    { name = "ranah-domain", editable = "packages/domain" },
 ]
 
 [[package]]

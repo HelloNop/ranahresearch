@@ -5,7 +5,11 @@ requires-python = ">=3.12"
 dependencies = [
     "httpx>=0.28,<1",
     "pydantic>=2.9,<3",
+    "ranah-domain",
 ]
+
+[tool.uv.sources]
+ranah-domain = { workspace = true }
 
 [build-system]
 requires = ["hatchling>=1.27,<2"]

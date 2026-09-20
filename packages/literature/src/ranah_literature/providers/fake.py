@@ -13,14 +13,14 @@ from ranah_literature.providers.base import AcademicProvider
 
 
 class FakeAcademicProvider(AcademicProvider):
-    name = "fake"
-
     def __init__(
         self,
         works: list[ProviderWork] | None = None,
         *,
+        name: str = "fake",
         capabilities: ProviderCapability | None = None,
     ) -> None:
+        self.name = name
         self._works = works or []
         self.capabilities = capabilities or ProviderCapability(
             can_get_references=True, can_get_citations=True

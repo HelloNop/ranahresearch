@@ -29,6 +29,30 @@ async def get_by_doi(session: AsyncSession, project_id: uuid.UUID, doi: str) -> 
     return (await session.scalars(stmt)).first()
 
 
+async def get_by_identifier(
+    session: AsyncSession, project_id: uuid.UUID, provider: str, identifier: str
+) -> WorkRecord | None:
+    """Finds a WorkRecord by a (provider, identifier) pair already recorded against it,
+    scoped to the project. Used for idempotent re-ingestion when no DOI is available."""
+    stmt = (
+        select(WorkRecord)
+        .join(WorkIdentifier, WorkIdentifier.work_id == WorkRecord.id)
+        .where(
+            WorkRecord.project_id == project_id,
+            WorkIdentifier.provider == provider,
+            WorkIdentifier.identifier == identifier,
+        )
+    )
+    return (await session.scalars(stmt)).first()
+
+
+async def identifier_exists(session: AsyncSession, provider: str, identifier: str) -> bool:
+    stmt = select(WorkIdentifier.id).where(
+        WorkIdentifier.provider == provider, WorkIdentifier.identifier == identifier
+    )
+    return (await session.scalars(stmt)).first() is not None
+
+
 async def add_identifier(session: AsyncSession, data: WorkIdentifierCreate) -> WorkIdentifier:
     identifier = WorkIdentifier(**data.model_dump())
     session.add(identifier)

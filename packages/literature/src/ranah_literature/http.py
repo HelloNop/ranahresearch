@@ -31,6 +31,26 @@ async def _noop_rate_limit() -> None:
     return None
 
 
+class IntervalRateLimiter:
+    """Minimum-interval quota mechanism: the shared `ProviderQuotaManager` every
+    provider goes through, so no provider implements its own ad hoc throttling."""
+
+    def __init__(self, min_interval_seconds: float) -> None:
+        self._min_interval = min_interval_seconds
+        self._lock = asyncio.Lock()
+        self._last_call: float | None = None
+
+    async def __call__(self) -> None:
+        async with self._lock:
+            loop = asyncio.get_event_loop()
+            now = loop.time()
+            if self._last_call is not None:
+                wait = self._min_interval - (now - self._last_call)
+                if wait > 0:
+                    await asyncio.sleep(wait)
+            self._last_call = loop.time()
+
+
 class ProviderHTTPClient:
     """One instance per provider: its own base URL, headers, and retry policy."""
 

@@ -77,14 +77,9 @@ async def test_capabilities_are_respected(sample_work: ProviderWork) -> None:
     assert await permissive.get_citations(sample_work.provider_id) == []
 
 
-@pytest.mark.parametrize(
-    "provider_cls",
-    [CrossrefProvider, OpenAlexProvider, SemanticScholarProvider],
-)
-async def test_epic009_providers_declare_capabilities_but_are_not_implemented_yet(
-    provider_cls: type[CrossrefProvider | OpenAlexProvider | SemanticScholarProvider],
-) -> None:
-    provider = provider_cls(http=None)  # type: ignore[arg-type]
-    assert isinstance(provider.capabilities, ProviderCapability)
-    with pytest.raises(NotImplementedError):
-        await provider.get_work("any-id")
+async def test_all_three_epic009_providers_declare_capabilities() -> None:
+    # See test_literature_provider_contract.py for the real providers actually
+    # running assert_provider_contract() above against mocked HTTP responses.
+    for provider_cls in (CrossrefProvider, OpenAlexProvider, SemanticScholarProvider):
+        provider = provider_cls(http=None)  # type: ignore[arg-type]
+        assert isinstance(provider.capabilities, ProviderCapability)
