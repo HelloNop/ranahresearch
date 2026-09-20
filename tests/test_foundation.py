@@ -14,8 +14,10 @@ def test_workspace_imports() -> None:
         "review",
         "statistics",
         "documents",
+        "workflow",
     ):
         assert import_module(f"ranah_{name}")
+    assert import_module("ranah_worker_orchestration")
 
 
 def test_health() -> None:

@@ -2,7 +2,10 @@
 name = "ranah-literature"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "httpx>=0.28,<1",
+    "pydantic>=2.9,<3",
+]
 
 [build-system]
 requires = ["hatchling>=1.27,<2"]

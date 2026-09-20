@@ -7,7 +7,7 @@ install:
 check:
 	uv run --all-packages --locked ruff check .
 	uv run --all-packages --locked ruff format --check .
-	uv run --all-packages --locked mypy apps/api/src packages tests scripts
+	uv run --all-packages --locked mypy apps/api/src packages tests scripts workers/orchestration/src
 	uv run --all-packages --locked pytest
 	npm run lint
 	npm run typecheck
@@ -21,6 +21,19 @@ api:
 
 web:
 	npm run dev
+
+worker-orchestration:
+	uv run --all-packages --locked python -m ranah_worker_orchestration.worker
+
+.PHONY: db-upgrade db-downgrade db-revision
+db-upgrade:
+	uv run --all-packages --locked alembic -c packages/domain/alembic.ini upgrade head
+
+db-downgrade:
+	uv run --all-packages --locked alembic -c packages/domain/alembic.ini downgrade -1
+
+db-revision:
+	uv run --all-packages --locked alembic -c packages/domain/alembic.ini revision --autogenerate -m "$(m)"
 
 .PHONY: smoke infra-up infra-down infra-check infra-logs
 

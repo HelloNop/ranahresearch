@@ -2,7 +2,15 @@
 name = "ranah-agents"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "ranah-domain",
+    "ranah-llm",
+    "pydantic>=2.9,<3",
+]
+
+[tool.uv.sources]
+ranah-domain = { workspace = true }
+ranah-llm = { workspace = true }
 
 [build-system]
 requires = ["hatchling>=1.27,<2"]
