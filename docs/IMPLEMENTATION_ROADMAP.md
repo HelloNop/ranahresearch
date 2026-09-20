@@ -67,16 +67,16 @@ EPIC-027 Evidence Matrix UI
 EPIC-028 Study Linking  
 EPIC-029 Risk-of-Bias Foundation  
 
-EPIC-030 Evidence Synthesis  
-EPIC-031 Claim Graph  
-EPIC-032 Manuscript Model  
-EPIC-033 Manuscript Planner  
-EPIC-034 Manuscript Writer  
-EPIC-035 Citation Resolver  
-EPIC-036 Reviewer Council  
-EPIC-037 Revision Loop  
-EPIC-038 Manuscript Workspace UI  
-EPIC-039 Export Service  
+EPIC-030 Evidence Synthesis — COMPLETE
+EPIC-031 Claim Graph — COMPLETE
+EPIC-032 Manuscript Model — COMPLETE
+EPIC-033 Manuscript Planner — COMPLETE
+EPIC-034 Manuscript Writer — COMPLETE
+EPIC-035 Citation Resolver — COMPLETE
+EPIC-036 Reviewer Council — COMPLETE
+EPIC-037 Revision Loop — COMPLETE
+EPIC-038 Manuscript Workspace UI — COMPLETE
+EPIC-039 Export Service — COMPLETE
 
 EPIC-040 Outcome Data Model  
 EPIC-041 Meta-analysis Eligibility  

@@ -13,6 +13,7 @@ from ranah_worker_orchestration import (
     extraction_activities,
     fulltext_activities,
     fulltext_screening_activities,
+    manuscript_activities,
     parsing_activities,
     research_activities,
     risk_activities,
@@ -23,6 +24,11 @@ from ranah_worker_orchestration import (
 from ranah_worker_orchestration.extraction_workflows import EvidenceExtractionWorkflow
 from ranah_worker_orchestration.fulltext_screening_workflows import FullTextScreeningWorkflow
 from ranah_worker_orchestration.fulltext_workflows import FullTextAcquisitionWorkflow
+from ranah_worker_orchestration.manuscript_workflows import (
+    ManuscriptGenerationWorkflow,
+    ManuscriptReviewWorkflow,
+    ManuscriptRevisionWorkflow,
+)
 from ranah_worker_orchestration.parsing_workflows import FullTextParsingWorkflow
 from ranah_worker_orchestration.research_workflows import (
     ResearchDiscoveryWorkflow,
@@ -56,6 +62,9 @@ async def run_worker() -> None:
             FullTextScreeningWorkflow,
             EvidenceExtractionWorkflow,
             RiskOfBiasWorkflow,
+            ManuscriptGenerationWorkflow,
+            ManuscriptRevisionWorkflow,
+            ManuscriptReviewWorkflow,
         ],
         activities=[
             fulltext_activities.prepare_acquisition_batch,
@@ -76,6 +85,16 @@ async def run_worker() -> None:
             validation_activities.review_evidence,
             validation_activities.recheck_evidence,
             risk_activities.assess_risk_of_bias,
+            manuscript_activities.validate_manuscript_readiness,
+            manuscript_activities.generate_synthesis,
+            manuscript_activities.build_and_verify_claims,
+            manuscript_activities.create_manuscript_plan,
+            manuscript_activities.prepare_manuscript,
+            manuscript_activities.write_manuscript_section,
+            manuscript_activities.complete_manuscript_version,
+            manuscript_activities.run_reviewer_council,
+            manuscript_activities.revise_open_issues,
+            manuscript_activities.finalize_manuscript_review,
             study_activities.link_studies,
             study_activities.calculate_study_progress,
             screening_activities.generate_protocol,

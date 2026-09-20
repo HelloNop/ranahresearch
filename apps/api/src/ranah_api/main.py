@@ -11,6 +11,7 @@ from starlette.requests import Request
 
 from ranah_api.evidence import router as evidence_router
 from ranah_api.fulltext import router as fulltext_router
+from ranah_api.manuscripts import router as manuscript_router
 from ranah_api.projects import router
 from ranah_api.risk_of_bias import router as risk_router
 from ranah_api.screening import router as screening_router
@@ -33,6 +34,7 @@ app.include_router(fulltext_router)
 app.include_router(studies_router)
 app.include_router(evidence_router)
 app.include_router(risk_router)
+app.include_router(manuscript_router)
 
 
 @app.exception_handler(HTTPException)

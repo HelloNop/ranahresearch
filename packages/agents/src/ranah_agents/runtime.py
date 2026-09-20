@@ -9,8 +9,11 @@ import uuid
 
 from pydantic import ValidationError
 from ranah_domain.enums import AgentRunStatus
+from ranah_domain.models.project import ResearchProject
 from ranah_domain.repositories import agents as agents_repo
+from ranah_domain.repositories import events as events_repo
 from ranah_domain.schemas.agent import AgentDefinitionCreate, AgentRunComplete, AgentRunCreate
+from ranah_domain.schemas.events import UsageEventCreate
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ranah_agents.context import AgentTask, ContextBuilder
@@ -112,6 +115,29 @@ async def run_agent(
             error_code=result.error_code,
         ),
     )
+    project = await session.get(ResearchProject, project_id)
+    if project is not None:
+        for event_type, quantity in (
+            ("LLM_INPUT_TOKENS", result.usage.input_tokens),
+            ("LLM_OUTPUT_TOKENS", result.usage.output_tokens),
+        ):
+            if quantity:
+                await events_repo.append_usage_event(
+                    session,
+                    UsageEventCreate(
+                        organization_id=project.organization_id,
+                        project_id=project_id,
+                        event_type=event_type,
+                        quantity=quantity,
+                        unit="tokens",
+                        cost_estimate=(
+                            result.usage.estimated_cost
+                            if event_type == "LLM_OUTPUT_TOKENS"
+                            else None
+                        ),
+                        provider=result.model.provider if result.model else None,
+                    ),
+                )
     return result
 
 

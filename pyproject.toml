@@ -42,7 +42,7 @@ module = "temporalio.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["boto3.*", "botocore.*", "pypdf.*"]
+module = ["boto3.*", "botocore.*", "pypdf.*", "docx.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

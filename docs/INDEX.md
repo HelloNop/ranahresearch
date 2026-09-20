@@ -9,3 +9,4 @@
 7. `IMPLEMENTATION_ROADMAP.md` — Milestones, epics, and execution sequence.
 8. `EPIC_018_022_IMPLEMENTATION.md` — Protocol and title/abstract screening completion record.
 9. `EPIC_023_029_IMPLEMENTATION.md` — Traceable full-text and evidence layer completion record.
+10. `EPIC_030_039_IMPLEMENTATION.md` — Evidence synthesis through manuscript workspace and export completion record.
