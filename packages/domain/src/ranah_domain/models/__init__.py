@@ -47,6 +47,35 @@ __all__ = [
     "WorkflowRun",
 ]
 
+from ranah_domain.models.evidence import (
+    Evidence as Evidence,
+)
+from ranah_domain.models.evidence import (
+    EvidenceProvenance as EvidenceProvenance,
+)
+from ranah_domain.models.evidence import (
+    EvidenceVerification as EvidenceVerification,
+)
+from ranah_domain.models.evidence import (
+    ExtractionSchema as ExtractionSchema,
+)
+from ranah_domain.models.evidence import (
+    StudyCharacteristic as StudyCharacteristic,
+)
+from ranah_domain.models.fulltext import (
+    DocumentChunk as DocumentChunk,
+)
+from ranah_domain.models.fulltext import (
+    FullTextAcquisition as FullTextAcquisition,
+)
+from ranah_domain.models.fulltext import (
+    FullTextAsset as FullTextAsset,
+)
+from ranah_domain.models.fulltext import (
+    ParsedDocument as ParsedDocument,
+)
+from ranah_domain.models.risk_of_bias import RiskOfBiasAssessment as RiskOfBiasAssessment
+from ranah_domain.models.risk_of_bias import RiskOfBiasDomain as RiskOfBiasDomain
 from ranah_domain.models.screening import (
     EligibilityCriterion as EligibilityCriterion,
 )
@@ -58,4 +87,13 @@ from ranah_domain.models.screening import (
 )
 from ranah_domain.models.screening import (
     ScreeningDecision as ScreeningDecision,
+)
+from ranah_domain.models.study import (
+    Study as Study,
+)
+from ranah_domain.models.study import (
+    StudyLinkDecision as StudyLinkDecision,
+)
+from ranah_domain.models.study import (
+    StudyWork as StudyWork,
 )

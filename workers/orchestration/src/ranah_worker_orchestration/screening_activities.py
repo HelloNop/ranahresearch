@@ -175,7 +175,7 @@ async def run_screening_batch(operation_id: str, work_ids: list[str]) -> None:
                 screening_registry(),
                 ContextBuilder(ToolRegistry(), research.gateway()),
                 name="screening_agent",
-                version="1",
+                version="2",
                 project_id=op.project_id,
                 task=AgentTask(
                     task_type="screening_agent", payload=payload.model_dump(mode="json")

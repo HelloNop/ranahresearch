@@ -6,7 +6,7 @@ from typing import Any, Literal, cast
 from fastapi import APIRouter, Query
 from pydantic import Field
 from ranah_agents.screening import ProtocolOutput
-from ranah_domain.enums import ProjectStatus, ResearchPlanStatus
+from ranah_domain.enums import FullTextAcquisitionStatus, ProjectStatus, ResearchPlanStatus
 from ranah_domain.models.project import ResearchFramework
 from ranah_domain.models.screening import (
     EligibilityCriterion,
@@ -16,11 +16,13 @@ from ranah_domain.models.screening import (
 )
 from ranah_domain.models.search import SearchRun
 from ranah_domain.models.workflow import WorkflowRun
+from ranah_domain.repositories.fulltext import acquisition_statuses, latest_asset
 from ranah_domain.repositories.screening import (
     canonical_ids,
     criteria_for,
     decision_view,
     effective_decisions,
+    final_included_work_ids,
     latest_protocol,
     progress,
     protocol_view,
@@ -367,6 +369,116 @@ async def human_decision(
         work_id=str(work_id),
     )
     return decision_view(decision)
+
+
+@router.post("/{project_id}/screening/full-text/start", status_code=202)
+async def start_full_text_screening(project_id: uuid.UUID, session: DB, user: Principal) -> Any:
+    """Screen the title/abstract-included corpus against the full text.
+
+    Only this stage's INCLUDE makes a record part of the final included corpus.
+    """
+    project = await scoped_project(session, user, project_id, write=True)
+    protocol = await latest_protocol(session, project_id)
+    if not protocol or protocol.status != "APPROVED":
+        raise error(409, "WORKFLOW_CONFLICT", "Approve a protocol first")
+    passed = await effective_decisions(session, protocol.id)
+    work_ids = [
+        str(work_id)
+        for work_id, decision in passed.items()
+        if decision.decision in ("INCLUDE", "UNCERTAIN")
+    ]
+    if not work_ids:
+        raise error(
+            409, "WORKFLOW_CONFLICT", "Complete title/abstract screening before full-text review"
+        )
+    project.status = ProjectStatus.SCREENING
+    return await start_operation(
+        session,
+        project,
+        "full_text_screening",
+        {
+            "protocol_id": str(protocol.id),
+            "protocol_version": protocol.version,
+            "stage": "FULL_TEXT",
+            "work_ids": work_ids,
+            "records_total": len(work_ids),
+            "batch_size": max(1, min(100, int(os.environ.get("SCREENING_BATCH_SIZE", "10")))),
+        },
+    )
+
+
+@router.get("/{project_id}/screening/full-text")
+async def full_text_queue(
+    project_id: uuid.UUID,
+    session: DB,
+    user: Principal,
+    filter: Literal["ALL", "UNSCREENED", "INCLUDE", "EXCLUDE", "UNCERTAIN", "UNAVAILABLE"] = "ALL",
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
+) -> Any:
+    await scoped_project(session, user, project_id)
+    protocol = await latest_protocol(session, project_id)
+    if not protocol:
+        return []
+    passed = await effective_decisions(session, protocol.id)
+    decided = await effective_decisions(session, protocol.id, stage="FULL_TEXT")
+    availability = await acquisition_statuses(session, project_id)
+    items = []
+    for work_id, title_abstract in passed.items():
+        if title_abstract.decision not in ("INCLUDE", "UNCERTAIN"):
+            continue
+        decision = decided.get(work_id)
+        if filter == "UNSCREENED" and decision:
+            continue
+        if filter == "UNAVAILABLE" and (
+            not decision or decision.reason_code != "FULL_TEXT_UNAVAILABLE"
+        ):
+            continue
+        if filter in ("INCLUDE", "EXCLUDE", "UNCERTAIN") and (
+            not decision or decision.decision != filter
+        ):
+            continue
+        items.append(
+            {
+                "work_id": work_id,
+                "full_text_status": availability.get(
+                    work_id, FullTextAcquisitionStatus.NOT_REQUESTED
+                ),
+                "asset_status": (
+                    asset.status if (asset := await latest_asset(session, work_id)) else None
+                ),
+                "effective": decision_view(decision) if decision else None,
+            }
+        )
+    return items[offset : offset + limit]
+
+
+@router.get("/{project_id}/screening/full-text/progress")
+async def full_text_progress(project_id: uuid.UUID, session: DB, user: Principal) -> Any:
+    await scoped_project(session, user, project_id)
+    protocol = await latest_protocol(session, project_id)
+    if not protocol:
+        return None
+    passed = await effective_decisions(session, protocol.id)
+    work_ids = [
+        work_id
+        for work_id, decision in passed.items()
+        if decision.decision in ("INCLUDE", "UNCERTAIN")
+    ]
+    counts = await progress(session, protocol.id, work_ids, stage="FULL_TEXT")
+    decided = await effective_decisions(session, protocol.id, stage="FULL_TEXT")
+    row = await selected_round(project_id, session)
+    return {
+        "protocol_id": protocol.id,
+        "protocol_version": protocol.version,
+        "stage": "FULL_TEXT",
+        "status": row.status if row else None,
+        **counts,
+        "unavailable": sum(
+            decision.reason_code == "FULL_TEXT_UNAVAILABLE" for decision in decided.values()
+        ),
+        "final_included": len(await final_included_work_ids(session, protocol.id)),
+    }
 
 
 @router.get("/{project_id}/works/{work_id}/screening-history")

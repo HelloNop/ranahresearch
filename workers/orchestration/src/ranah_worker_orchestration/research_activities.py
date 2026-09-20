@@ -56,7 +56,13 @@ def gateway() -> LLMGateway:
             {
                 ModelTier.STANDARD: RoutedModel(
                     provider="openai", model=os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
-                )
+                ),
+                # Extraction reads numbers off a page, where a cheaper model's
+                # transcription slips are expensive to catch downstream.
+                ModelTier.HIGH_PRECISION_EXTRACTION: RoutedModel(
+                    provider="openai",
+                    model=os.environ.get("OPENAI_EXTRACTION_MODEL", "gpt-4o"),
+                ),
             }
         ),
     )

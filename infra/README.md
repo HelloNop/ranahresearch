@@ -10,7 +10,7 @@ and default namespace, an S3 put/get round trip, and UI HTTP access.
 | PostgreSQL | 127.0.0.1:5432 | DB `ranahresearch`, user `ranah`, password `ranah-local-only` |
 | Temporal | 127.0.0.1:7233 | namespace `default` |
 | Temporal UI | http://127.0.0.1:8080 | local, no auth |
-| S3 API | http://127.0.0.1:9000 | bucket `ranahresearch`, region `us-east-1`, path-style addressing |
+| S3 API | http://127.0.0.1:9002 | bucket `ranahresearch`, region `us-east-1`, path-style addressing |
 | S3 console | http://127.0.0.1:9001 | access key `ranah-local`, secret `ranah-local-secret` |
 
 These credentials are development defaults. Services bind to loopback only.

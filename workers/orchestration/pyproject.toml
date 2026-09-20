@@ -6,6 +6,8 @@ dependencies = [
     "ranah-workflow",
     "ranah-domain",
     "ranah-agents",
+    "ranah-documents",
+    "ranah-evidence",
     "ranah-literature",
 ]
 
@@ -13,6 +15,8 @@ dependencies = [
 ranah-workflow = { workspace = true }
 ranah-domain = { workspace = true }
 ranah-agents = { workspace = true }
+ranah-documents = { workspace = true }
+ranah-evidence = { workspace = true }
 ranah-literature = { workspace = true }
 
 [build-system]

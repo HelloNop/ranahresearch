@@ -58,7 +58,8 @@ services:
       MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID:-ranah-local}
       MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:-ranah-local-secret}
     ports:
-      - "127.0.0.1:${S3_PORT:-9000}:9000"
+      # 9000 is PHP-FPM's default port and is often already taken on a dev machine.
+      - "127.0.0.1:${S3_PORT:-9002}:9000"
       - "127.0.0.1:${S3_CONSOLE_PORT:-9001}:9001"
     volumes:
       - object-data:/data

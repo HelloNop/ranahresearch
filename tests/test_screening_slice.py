@@ -7,7 +7,13 @@ import pytest
 from pydantic import ValidationError
 from ranah_agents.screening import ProtocolOutput, ScreeningOutput
 from ranah_domain.db import create_session_factory, session_scope
-from ranah_domain.models import AgentRun, ResearchFramework, ResearchPlan, WorkRecord
+from ranah_domain.models import (
+    AgentDefinition,
+    AgentRun,
+    ResearchFramework,
+    ResearchPlan,
+    WorkRecord,
+)
 from ranah_domain.models.screening import ScreeningDecision
 from ranah_domain.schemas.screening import BoundCriterion, Criterion, evaluate
 from ranah_llm.gateway import LLMGateway
@@ -321,7 +327,15 @@ async def test_protocol_screening_end_to_end(
                     select(AgentRun).where(AgentRun.project_id == uuid.UUID(project_id))
                 )
             )
-            assert all(run.prompt_version == "v1" for run in runs)
+            # Each run records the prompt version of its own contract.
+            definitions = {
+                definition.id: definition.name
+                for definition in await session.scalars(select(AgentDefinition))
+            }
+            recorded = {(definitions[run.agent_definition_id], run.prompt_version) for run in runs}
+            assert ("protocol_agent", "v1") in recorded
+            assert ("screening_agent", "v2") in recorded
+            assert all(run.prompt_version for run in runs)
             with pytest.raises(DBAPIError):
                 async with session.begin_nested():
                     await session.execute(
@@ -408,7 +422,7 @@ async def test_screening_agent_scientific_fixtures(
             screening_registry(),
             ContextBuilder(ToolRegistry(), gateway),
             name="screening_agent",
-            version="1",
+            version="2",
             project_id=uuid.UUID(project_id),
             task=AgentTask(task_type="screening_agent", payload=payload.model_dump(mode="json")),
         )

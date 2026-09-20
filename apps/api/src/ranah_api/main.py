@@ -9,8 +9,12 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 
+from ranah_api.evidence import router as evidence_router
+from ranah_api.fulltext import router as fulltext_router
 from ranah_api.projects import router
+from ranah_api.risk_of_bias import router as risk_router
 from ranah_api.screening import router as screening_router
+from ranah_api.studies import router as studies_router
 
 app = FastAPI(title="RanahResearch API", version="0.1.0")
 app.add_middleware(
@@ -25,6 +29,10 @@ app.add_middleware(
 )
 app.include_router(router)
 app.include_router(screening_router)
+app.include_router(fulltext_router)
+app.include_router(studies_router)
+app.include_router(evidence_router)
+app.include_router(risk_router)
 
 
 @app.exception_handler(HTTPException)

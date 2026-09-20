@@ -60,13 +60,15 @@ async def canonical_ids(session: AsyncSession, project_id: uuid.UUID) -> list[uu
 
 
 async def effective_decisions(
-    session: AsyncSession, protocol_id: uuid.UUID
+    session: AsyncSession, protocol_id: uuid.UUID, *, stage: str = "TITLE_ABSTRACT"
 ) -> dict[uuid.UUID, ScreeningDecision]:
+    """Latest decision per work for one protocol and stage, with a human
+    decision always outranking an AI or system one."""
     rows = await session.scalars(
         select(ScreeningDecision)
         .where(
             ScreeningDecision.protocol_id == protocol_id,
-            ScreeningDecision.stage == "TITLE_ABSTRACT",
+            ScreeningDecision.stage == stage,
         )
         .order_by(ScreeningDecision.created_at, ScreeningDecision.id)
     )
@@ -79,9 +81,13 @@ async def effective_decisions(
 
 
 async def progress(
-    session: AsyncSession, protocol_id: uuid.UUID, work_ids: list[uuid.UUID]
+    session: AsyncSession,
+    protocol_id: uuid.UUID,
+    work_ids: list[uuid.UUID],
+    *,
+    stage: str = "TITLE_ABSTRACT",
 ) -> dict[str, int]:
-    effective = await effective_decisions(session, protocol_id)
+    effective = await effective_decisions(session, protocol_id, stage=stage)
     rows = [effective[key] for key in work_ids if key in effective]
     return {
         "total": len(work_ids),
@@ -92,6 +98,17 @@ async def progress(
             for decision in ("INCLUDE", "EXCLUDE", "UNCERTAIN", "CONFLICT")
         },
     }
+
+
+async def final_included_work_ids(session: AsyncSession, protocol_id: uuid.UUID) -> list[uuid.UUID]:
+    """Invariant 3/4: final inclusion comes only from the latest effective
+    FULL_TEXT decision. A title/abstract INCLUDE never qualifies a record for
+    evidence extraction (docs/DATA_MODEL.md #103)."""
+    effective = await effective_decisions(session, protocol_id, stage="FULL_TEXT")
+    return sorted(
+        (work_id for work_id, decision in effective.items() if decision.decision == "INCLUDE"),
+        key=str,
+    )
 
 
 def decision_view(row: ScreeningDecision) -> dict[str, Any]:

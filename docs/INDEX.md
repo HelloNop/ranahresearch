@@ -7,3 +7,5 @@
 5. `DATA_MODEL.md` — Canonical domain/data model.
 6. `AGENT_CONTRACTS.md` — Agent runtime, roles, permissions, and contracts.
 7. `IMPLEMENTATION_ROADMAP.md` — Milestones, epics, and execution sequence.
+8. `EPIC_018_022_IMPLEMENTATION.md` — Protocol and title/abstract screening completion record.
+9. `EPIC_023_029_IMPLEMENTATION.md` — Traceable full-text and evidence layer completion record.

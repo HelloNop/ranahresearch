@@ -143,3 +143,95 @@ class ProjectEventActorType(enum.StrEnum):
     USER = "USER"
     AGENT = "AGENT"
     SYSTEM = "SYSTEM"
+
+
+class FullTextSourceType(enum.StrEnum):
+    OPEN_ACCESS = "OPEN_ACCESS"
+    USER_UPLOAD = "USER_UPLOAD"
+    LICENSED_SOURCE = "LICENSED_SOURCE"
+    OTHER = "OTHER"
+
+
+class FullTextAssetStatus(enum.StrEnum):
+    """State of one stored file, not of the retrieval attempt."""
+
+    AVAILABLE = "AVAILABLE"
+    PARSING = "PARSING"
+    PARSED = "PARSED"
+    FAILED = "FAILED"
+    REMOVED = "REMOVED"
+
+
+class StudyType(enum.StrEnum):
+    RCT = "RCT"
+    QUASI_EXPERIMENTAL = "QUASI_EXPERIMENTAL"
+    COHORT = "COHORT"
+    CASE_CONTROL = "CASE_CONTROL"
+    CROSS_SECTIONAL = "CROSS_SECTIONAL"
+    QUALITATIVE = "QUALITATIVE"
+    MIXED_METHODS = "MIXED_METHODS"
+    SYSTEMATIC_REVIEW = "SYSTEMATIC_REVIEW"
+    OTHER = "OTHER"
+
+
+class StudyStatus(enum.StrEnum):
+    CANDIDATE = "CANDIDATE"
+    CONFIRMED = "CONFIRMED"
+    NEEDS_REVIEW = "NEEDS_REVIEW"
+    MERGED = "MERGED"
+
+
+class StudyWorkRelationship(enum.StrEnum):
+    PRIMARY_REPORT = "PRIMARY_REPORT"
+    SECONDARY_REPORT = "SECONDARY_REPORT"
+    CONFERENCE_ABSTRACT = "CONFERENCE_ABSTRACT"
+    FOLLOW_UP = "FOLLOW_UP"
+    PROTOCOL = "PROTOCOL"
+    CORRECTION = "CORRECTION"
+    OTHER = "OTHER"
+
+
+class StudyLinkDecisionType(enum.StrEnum):
+    LINK = "LINK"
+    KEEP_SEPARATE = "KEEP_SEPARATE"
+    UNCERTAIN = "UNCERTAIN"
+
+
+class FullTextAcquisitionStatus(enum.StrEnum):
+    """Outcome of actually trying to obtain full text. ABSTRACT_ONLY and
+    UNAVAILABLE are retrieval facts, never an agent's assumption."""
+
+    NOT_REQUESTED = "NOT_REQUESTED"
+    SEARCHING = "SEARCHING"
+    AVAILABLE = "AVAILABLE"
+    ABSTRACT_ONLY = "ABSTRACT_ONLY"
+    UNAVAILABLE = "UNAVAILABLE"
+    RETRIEVAL_FAILED = "RETRIEVAL_FAILED"
+
+
+class ExtractionSchemaStatus(enum.StrEnum):
+    DRAFT = "DRAFT"
+    APPROVED = "APPROVED"
+    SUPERSEDED = "SUPERSEDED"
+
+
+class EvidenceValueType(enum.StrEnum):
+    """How a value came to exist. DERIVED values must record their derivation,
+    and MISSING is an explicit state, never a silent blank or a guess."""
+
+    REPORTED = "REPORTED"
+    DERIVED = "DERIVED"
+    USER_ENTERED = "USER_ENTERED"
+    MISSING = "MISSING"
+
+
+class EvidenceVerificationStatus(enum.StrEnum):
+    UNVERIFIED = "UNVERIFIED"
+    VERIFIED = "VERIFIED"
+    PARTIAL = "PARTIAL"
+    CONFLICT = "CONFLICT"
+
+
+class EvidenceStatus(enum.StrEnum):
+    CURRENT = "CURRENT"
+    SUPERSEDED = "SUPERSEDED"

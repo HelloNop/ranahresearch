@@ -41,6 +41,10 @@ exclude = ["packages/domain/migrations/versions"]
 module = "temporalio.*"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["boto3.*", "botocore.*", "pypdf.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"

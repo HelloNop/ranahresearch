@@ -44,4 +44,36 @@ input[type="checkbox"] { width:auto; min-height:24px; margin-right:8px; vertical
 button[aria-pressed="true"] { background:var(--accent-dark); outline:2px solid var(--ink); outline-offset:2px; }
 @media (max-width:1000px) { .screening-columns { grid-template-columns:1fr; } }
 @media (max-width:820px) { .shell { padding:22px 16px 45px; } .start-panel,.workspace-grid { grid-template-columns:1fr; } .plan-panel { grid-row:auto; } .start-panel { gap:26px; padding:23px; } .project-heading { align-items:start; flex-direction:column; padding:22px; } .metric { border-left:0; border-top:1px solid var(--line); padding:14px 0 0; text-align:left; width:100%; } .progress-providers { flex-basis:100%; margin-left:19px; } .panel { padding:20px; } }
-@media (max-width:520px) { h1 { font-size:2.45rem; } .topbar { align-items:flex-start; } .state { font-size:.58rem; } .element,.queries div { grid-template-columns:1fr; gap:5px; } th:nth-child(3),td:nth-child(3) { display:none; } }
+@media (max-width:520px) { h1 { font-size:2.45rem; } .topbar { align-items:flex-start; } .state { font-size:.58rem; } .element,.queries div { grid-template-columns:1fr; gap:5px; } .literature-panel th:nth-child(3),.literature-panel td:nth-child(3) { display:none; } }
+.evidence-workspace .panel { min-width:0; }
+.evidence-workspace { grid-template-columns:minmax(0,1fr); }
+.evidence-workspace .panel > .muted { margin-bottom:14px; }
+.evidence-workspace h3 { font-size:1.2rem; font-weight:500; margin:16px 0 10px; }
+.evidence-workspace h4 { margin:18px 0 8px; }
+.evidence-workspace .table-wrap { width:100%; max-width:100%; min-width:0; overflow-x:auto; }
+.evidence-workspace .matrix-table { min-width:900px; }
+.evidence-workspace .matrix-table th:first-child { position:sticky; left:0; z-index:1; min-width:140px; background:var(--panel); }
+.evidence-workspace td { min-width:125px; }
+.evidence-workspace .text-button { min-height:30px; padding:2px 0; background:transparent; color:var(--green); border:0; border-radius:0; text-align:left; text-decoration:underline; text-underline-offset:3px; font:inherit; letter-spacing:0; }
+.evidence-workspace .text-button:hover { color:var(--accent-dark); background:transparent; }
+.evidence-workspace .cell-value { overflow-wrap:anywhere; }
+.evidence-workspace td small,.evidence-workspace th small,.evidence-workspace .cell-value small { display:block; margin-top:5px; color:var(--muted); font: .69rem/1.35 Arial,sans-serif; text-transform:none; letter-spacing:0; }
+.evidence-workspace .file-control { display:inline-block; position:relative; min-width:110px; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+.evidence-workspace .file-control input { position:absolute; left:0; top:0; width:1px; height:1px; padding:0; opacity:0; }
+.evidence-workspace .file-control:focus-within { outline:3px solid #963b2b; outline-offset:3px; }
+.study-list { list-style:none; padding:0; margin:18px 0; border-top:1px solid var(--line); }
+.study-list li { display:flex; justify-content:space-between; gap:16px; border-bottom:1px solid var(--line); padding:9px 0; }
+.study-list span { color:var(--muted); font: .75rem Arial,sans-serif; }
+.study-detail,.evidence-inspector,.risk-detail { margin-top:22px; border-top:2px solid var(--green); padding-top:16px; }
+.study-detail ul { padding-left:20px; }
+.study-detail label,.correction-form label { display:block; margin:12px 0 6px; }
+.link-review { margin-top:18px; }
+.link-review button { display:block; margin-top:12px; }
+.evidence-filters { margin:16px 0; }
+.evidence-workspace blockquote { margin:10px 0; padding:13px 16px; border-left:3px solid var(--green); background:var(--paper); overflow-wrap:anywhere; }
+.evidence-workspace blockquote cite { display:block; margin-top:8px; color:var(--muted); font:normal .75rem Arial,sans-serif; }
+.correction-form { max-width:600px; }
+.correction-form .filters { margin:10px 0; }
+.risk-detail dl > div { padding:12px 0; border-top:1px solid var(--line); }
+.risk-detail dd { margin-top:6px; }
+@media (max-width:620px) { .study-list li { display:block; } .study-list span { display:block; } .evidence-workspace .panel-head { align-items:flex-start; } }

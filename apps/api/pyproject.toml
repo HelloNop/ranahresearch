@@ -2,11 +2,22 @@
 name = "ranah-api"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.34,<1", "ranah-domain", "ranah-agents", "ranah-workflow"]
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn>=0.34,<1",
+    "python-multipart>=0.0.18,<1",
+    "ranah-domain",
+    "ranah-agents",
+    "ranah-documents",
+    "ranah-evidence",
+    "ranah-workflow",
+]
 
 [tool.uv.sources]
 ranah-domain = { workspace = true }
 ranah-agents = { workspace = true }
+ranah-documents = { workspace = true }
+ranah-evidence = { workspace = true }
 ranah-workflow = { workspace = true }
 
 [build-system]

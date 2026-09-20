@@ -31,6 +31,11 @@ class ScreeningStage(StrEnum):
 
 
 class ReasonCode(StrEnum):
+    """Standardized exclusion reasons. FULL_TEXT_UNAVAILABLE and
+    INSUFFICIENT_DATA_FOR_ELIGIBILITY apply only at the full-text stage, and
+    FULL_TEXT_UNAVAILABLE is recorded by the system from a real retrieval
+    outcome, never chosen by an agent."""
+
     WRONG_POPULATION = "WRONG_POPULATION"
     WRONG_INTERVENTION = "WRONG_INTERVENTION"
     WRONG_EXPOSURE = "WRONG_EXPOSURE"
@@ -42,7 +47,16 @@ class ReasonCode(StrEnum):
     OUTSIDE_DATE_RANGE = "OUTSIDE_DATE_RANGE"
     WRONG_LANGUAGE = "WRONG_LANGUAGE"
     NOT_PRIMARY_RESEARCH = "NOT_PRIMARY_RESEARCH"
+    FULL_TEXT_UNAVAILABLE = "FULL_TEXT_UNAVAILABLE"
+    INSUFFICIENT_DATA_FOR_ELIGIBILITY = "INSUFFICIENT_DATA_FOR_ELIGIBILITY"
     OTHER = "OTHER"
+
+
+STAGE_ONLY_REASONS = {
+    ReasonCode.FULL_TEXT_UNAVAILABLE,
+    ReasonCode.INSUFFICIENT_DATA_FOR_ELIGIBILITY,
+}
+AGENT_FORBIDDEN_REASONS = {ReasonCode.FULL_TEXT_UNAVAILABLE}
 
 
 Text = Annotated[str, Field(min_length=1, max_length=12000)]

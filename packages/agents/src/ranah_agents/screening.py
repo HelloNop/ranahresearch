@@ -4,7 +4,9 @@ from uuid import UUID
 from pydantic import BaseModel, Field, model_validator
 from ranah_domain.enums import AgentRunStatus, ResearchMethod
 from ranah_domain.schemas.screening import (
+    AGENT_FORBIDDEN_REASONS,
     REASON_DIMENSIONS,
+    STAGE_ONLY_REASONS,
     Assessment,
     BoundCriterion,
     Criterion,
@@ -58,6 +60,16 @@ class ProtocolOutput(StrictModel):
     uncertainties: list[Text]
 
 
+class RetrievedPassage(StrictModel):
+    """One passage of parsed full text, carrying where it came from."""
+
+    page_start: int
+    page_end: int
+    section_path: str
+    section_type: str
+    text: Text
+
+
 class ScreeningInput(StrictModel):
     work_id: UUID
     title: Text
@@ -70,7 +82,21 @@ class ScreeningInput(StrictModel):
     research_question: Text
     eligibility_criteria: list[BoundCriterion]
     deterministic_assessments: list[Assessment]
-    stage: Literal["TITLE_ABSTRACT"] = "TITLE_ABSTRACT"
+    stage: Literal["TITLE_ABSTRACT", "FULL_TEXT"] = "TITLE_ABSTRACT"
+    passages: list[RetrievedPassage] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def stage_inputs(self) -> "ScreeningInput":
+        if self.stage == "FULL_TEXT" and not self.passages:
+            raise ValueError("Full-text screening requires retrieved passages")
+        if self.stage == "TITLE_ABSTRACT" and self.passages:
+            raise ValueError("Title/abstract screening must not receive full text")
+        return self
+
+    def evidence_corpus(self) -> str:
+        parts = [self.title, self.abstract or ""]
+        parts.extend(passage.text for passage in self.passages)
+        return "\n".join(parts)
 
 
 class ScreeningOutput(StrictModel):
@@ -83,12 +109,17 @@ class ScreeningOutput(StrictModel):
 
     @model_validator(mode="after")
     def exclusion_reason(self) -> "ScreeningOutput":
-        if self.decision == "EXCLUDE" and (
-            not self.reason_code
-            or not any(a.result == "FAIL" and a.evidence for a in self.criterion_assessments)
-        ):
-            raise ValueError("Exclusion requires a reason code and evidenced failed criterion")
-        if self.decision != "EXCLUDE" and self.reason_code is not None:
+        insufficient = self.reason_code is ReasonCode.INSUFFICIENT_DATA_FOR_ELIGIBILITY
+        if self.decision == "EXCLUDE":
+            if not self.reason_code:
+                raise ValueError("Exclusion requires a standardized reason code")
+            # Exclusion for missing data rests on absent evidence, so it is the
+            # one reason that cannot point at an evidenced failed criterion.
+            if not insufficient and not any(
+                a.result == "FAIL" and a.evidence for a in self.criterion_assessments
+            ):
+                raise ValueError("Exclusion requires an evidenced failed criterion")
+        elif self.reason_code is not None and not (self.decision == "UNCERTAIN" and insufficient):
             raise ValueError("Only exclusions have exclusion reason codes")
         return self
 
@@ -98,7 +129,14 @@ def validate_screening(data: ScreeningInput, output: ScreeningOutput) -> None:
     ids = [a.criterion_id for a in output.criterion_assessments]
     if len(ids) != len(set(ids)) or set(ids) != set(criteria):
         raise LLMInvalidResponseError("Assess each supplied criterion exactly once")
-    text = f"{data.title}\n{data.abstract or ''}"
+    if output.reason_code in AGENT_FORBIDDEN_REASONS:
+        raise LLMInvalidResponseError(
+            "Full-text availability is a retrieval outcome recorded by the system, "
+            "not a screening judgement"
+        )
+    if data.stage == "TITLE_ABSTRACT" and output.reason_code in STAGE_ONLY_REASONS:
+        raise LLMInvalidResponseError("That reason code belongs to the full-text stage")
+    text = data.evidence_corpus()
     deterministic = {a.criterion_id: a for a in data.deterministic_assessments}
     for a in output.criterion_assessments:
         known = deterministic.get(a.criterion_id)
@@ -113,6 +151,12 @@ def validate_screening(data: ScreeningInput, output: ScreeningOutput) -> None:
     ):
         raise LLMInvalidResponseError("Resolve failed criteria before recommending inclusion")
     if output.decision == "EXCLUDE":
+        if output.reason_code is ReasonCode.INSUFFICIENT_DATA_FOR_ELIGIBILITY:
+            if not any(a.result == "UNKNOWN" for a in output.criterion_assessments):
+                raise LLMInvalidResponseError(
+                    "Insufficient-data exclusion requires at least one criterion left UNKNOWN"
+                )
+            return
         expected = REASON_DIMENSIONS.get(output.reason_code) if output.reason_code else None
         failures = [
             a
@@ -127,21 +171,25 @@ def validate_screening(data: ScreeningInput, output: ScreeningOutput) -> None:
 
 def screening_registry() -> AgentRegistry:
     registry = AgentRegistry()
-    schemas: list[tuple[str, type[BaseModel], type[BaseModel]]] = [
-        ("protocol_agent", ProtocolInput, ProtocolOutput),
-        ("screening_agent", ScreeningInput, ScreeningOutput),
+    # screening_agent v2 covers both stages; its prompt is stage-aware rather
+    # than a second agent (docs/AGENT_CONTRACTS.md #27).
+    schemas: list[tuple[str, str, str, type[BaseModel], type[BaseModel]]] = [
+        ("protocol_agent", "1", "v1", ProtocolInput, ProtocolOutput),
+        ("screening_agent", "2", "v2", ScreeningInput, ScreeningOutput),
     ]
-    for name, input_schema, output_schema in schemas:
+    for name, version, prompt_version, input_schema, output_schema in schemas:
         contract = AgentContract(
             name=name,
-            version="1",
+            version=version,
             purpose=name.replace("_", " "),
             input_schema=input_schema,
             output_schema=output_schema,
             model_tier=ModelTier.STANDARD,
             prompt_name=name,
-            prompt_version="v1",
-            allowed_tools=("protocol.read", "literature.read_metadata"),
+            prompt_version=prompt_version,
+            allowed_tools=("protocol.read", "literature.read_metadata", "fulltext.read")
+            if name == "screening_agent"
+            else ("protocol.read", "literature.read_metadata"),
             forbidden_actions=(
                 "protocol.write",
                 "literature.search",
@@ -156,7 +204,10 @@ def screening_registry() -> AgentRegistry:
                 context: AgentContext, data: ProtocolInput | ScreeningInput
             ) -> AgentResult:
                 messages = [
-                    Message(role=Role.SYSTEM, content=load_prompt(selected.prompt_name, "v1")),
+                    Message(
+                        role=Role.SYSTEM,
+                        content=load_prompt(selected.prompt_name, selected.prompt_version),
+                    ),
                     Message(role=Role.USER, content=data.model_dump_json()),
                 ]
                 result = AgentResult(status=AgentRunStatus.FAILED)
