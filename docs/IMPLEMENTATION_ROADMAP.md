@@ -342,6 +342,12 @@ Temporal workflow.
 
 # 21. EPIC-018 — Research Workspace UI
 
+Implementation status (2026-09-20): COMPLETE for blocking discovery UI gaps.
+EPIC-019, EPIC-020, EPIC-021 and EPIC-022 are COMPLETE for the title/abstract
+screening scope. FULL_TEXT execution remains deferred to the acquisition/parsing
+foundation. See [implementation report](EPIC_018_022_IMPLEMENTATION.md) for
+acceptance evidence, commands, resolver semantics and remaining boundaries.
+
 Project chat
 Research Plan
 Literature list

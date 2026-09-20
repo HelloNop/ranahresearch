@@ -7,10 +7,19 @@ import os
 from ranah_workflow import TemporalSettings, connect_client
 from temporalio.worker import Worker
 
-from ranah_worker_orchestration import activities, discovery_activities, research_activities
+from ranah_worker_orchestration import (
+    activities,
+    discovery_activities,
+    research_activities,
+    screening_activities,
+)
 from ranah_worker_orchestration.research_workflows import (
     ResearchDiscoveryWorkflow,
     ResearchPlanningWorkflow,
+)
+from ranah_worker_orchestration.screening_workflows import (
+    ProtocolWorkflow,
+    TitleAbstractScreeningWorkflow,
 )
 from ranah_worker_orchestration.workflows import ResearchFoundationWorkflow
 
@@ -22,8 +31,18 @@ async def run_worker() -> None:
     worker = Worker(
         client,
         task_queue=TASK_QUEUE,
-        workflows=[ResearchFoundationWorkflow, ResearchPlanningWorkflow, ResearchDiscoveryWorkflow],
+        workflows=[
+            ResearchFoundationWorkflow,
+            ResearchPlanningWorkflow,
+            ResearchDiscoveryWorkflow,
+            ProtocolWorkflow,
+            TitleAbstractScreeningWorkflow,
+        ],
         activities=[
+            screening_activities.generate_protocol,
+            screening_activities.prepare_screening_batch,
+            screening_activities.run_screening_batch,
+            screening_activities.calculate_screening_progress,
             activities.create_workflow_run,
             activities.update_workflow_run_status,
             activities.prepare_scope,

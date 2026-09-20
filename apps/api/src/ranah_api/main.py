@@ -10,6 +10,7 @@ from starlette.exceptions import HTTPException
 from starlette.requests import Request
 
 from ranah_api.projects import router
+from ranah_api.screening import router as screening_router
 
 app = FastAPI(title="RanahResearch API", version="0.1.0")
 app.add_middleware(
@@ -23,6 +24,7 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 app.include_router(router)
+app.include_router(screening_router)
 
 
 @app.exception_handler(HTTPException)

@@ -362,9 +362,11 @@ async def start_operation(
         project_id=project.id,
         temporal_workflow_id=f"research-{op_id}",
         status=WorkflowRunStatus.PENDING,
-        workflow_type="ResearchDiscoveryWorkflow"
-        if kind == "search"
-        else "ResearchPlanningWorkflow",
+        workflow_type={
+            "search": "ResearchDiscoveryWorkflow",
+            "protocol": "ProtocolWorkflow",
+            "screening": "TitleAbstractScreeningWorkflow",
+        }.get(kind, "ResearchPlanningWorkflow"),
         stage="PENDING",
         details={"kind": kind, **details},
     )
@@ -543,11 +545,14 @@ async def get_literature(
     year: int | None = None,
     verification_status: str | None = None,
     provider: str | None = None,
+    work_id: uuid.UUID | None = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 100,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[LiteratureView]:
     await scoped_project(session, user, project_id)
     stmt = select(WorkRecord).where(WorkRecord.project_id == project_id)
+    if work_id:
+        stmt = stmt.where(WorkRecord.id == work_id)
     if year is not None:
         stmt = stmt.where(WorkRecord.publication_year == year)
     if provider:
@@ -569,7 +574,7 @@ async def get_literature(
             == verification_status
         )
     works = await session.scalars(
-        stmt.order_by(WorkRecord.created_at.desc()).limit(limit).offset(offset)
+        stmt.order_by(WorkRecord.created_at.desc(), WorkRecord.id).limit(limit).offset(offset)
     )
     result = []
     for work in works:

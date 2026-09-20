@@ -1,5 +1,10 @@
 # RanahResearch
 
+Protocol and title/abstract screening are available from the research workspace.
+Apply migrations with `make db-upgrade` and restart the API and orchestration
+worker. See [EPIC-018 through EPIC-022 implementation report](docs/EPIC_018_022_IMPLEMENTATION.md)
+for the workflow, configuration, tests and full-text boundaries.
+
 Repository and local development foundation for the RanahResearch project.
 
 RanahResearch is an agentic scientific research & writing SaaS designed as a

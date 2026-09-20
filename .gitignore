@@ -17,6 +17,8 @@ node_modules/
 .next/
 *.tsbuildinfo
 *.log
+test-results/
+playwright-report/
 
 # Local agent tool config/skill caches, not part of the product.
 .claude/

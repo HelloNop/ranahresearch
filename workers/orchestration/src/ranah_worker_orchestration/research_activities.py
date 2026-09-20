@@ -106,9 +106,11 @@ async def finish_operation(operation_id: str, status: str, error: str | None = N
         event(
             session,
             row.project_id,
-            "DISCOVERY_COMPLETED"
-            if row.workflow_type == "ResearchDiscoveryWorkflow"
-            else "PLANNING_COMPLETED",
+            {
+                "ResearchDiscoveryWorkflow": "DISCOVERY_COMPLETED",
+                "ProtocolWorkflow": "PROTOCOL_GENERATION_COMPLETED",
+                "TitleAbstractScreeningWorkflow": "SCREENING_ROUND_COMPLETED",
+            }.get(row.workflow_type, "PLANNING_COMPLETED"),
             operation_id=operation_id,
             status=status,
             error=error,
