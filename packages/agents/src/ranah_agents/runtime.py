@@ -94,12 +94,16 @@ async def run_agent(
                 warnings=[str(exc)],
             )
 
+    result.agent_run_id = run.id
+    if result.model is not None:
+        run.model_provider = result.model.provider
+        run.model_name = result.model.model
     await agents_repo.complete_agent_run(
         session,
         run.id,
         AgentRunComplete(
             status=result.status,
-            output_metadata=result.structured_output.model_dump()
+            output_metadata=result.structured_output.model_dump(mode="json")
             if result.structured_output
             else {},
             input_tokens=result.usage.input_tokens,

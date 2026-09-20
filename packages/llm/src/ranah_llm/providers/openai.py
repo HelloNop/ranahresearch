@@ -3,6 +3,7 @@
 import asyncio
 import json
 from collections.abc import Awaitable, Callable
+from typing import Any
 
 import openai
 from openai import AsyncOpenAI
@@ -28,6 +29,29 @@ from ranah_llm.providers.base import LLMProvider
 
 TraceHook = Callable[[str, dict[str, object]], None]
 CostHook = Callable[[str, Usage], float | None]
+
+
+def strict_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    result = dict(schema)
+    result.pop("default", None)
+    for key, value in result.items():
+        if isinstance(value, dict):
+            result[key] = (
+                {
+                    name: strict_schema(item) if isinstance(item, dict) else item
+                    for name, item in value.items()
+                }
+                if key in ("properties", "$defs")
+                else strict_schema(value)
+            )
+        elif isinstance(value, list):
+            result[key] = [
+                strict_schema(item) if isinstance(item, dict) else item for item in value
+            ]
+    if "properties" in result:
+        result["required"] = list(result["properties"])
+        result["additionalProperties"] = False
+    return result
 
 
 def _to_openai_messages(messages: list[Message]) -> list[ChatCompletionMessageParam]:
@@ -94,7 +118,7 @@ class OpenAIProvider(LLMProvider):
                     "type": "json_schema",
                     "json_schema": {
                         "name": request.schema_name,
-                        "schema": request.response_schema,
+                        "schema": strict_schema(request.response_schema),
                         "strict": True,
                     },
                 },

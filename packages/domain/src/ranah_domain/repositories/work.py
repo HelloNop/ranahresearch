@@ -46,9 +46,13 @@ async def get_by_identifier(
     return (await session.scalars(stmt)).first()
 
 
-async def identifier_exists(session: AsyncSession, provider: str, identifier: str) -> bool:
+async def identifier_exists(
+    session: AsyncSession, work_id: uuid.UUID, provider: str, identifier: str
+) -> bool:
     stmt = select(WorkIdentifier.id).where(
-        WorkIdentifier.provider == provider, WorkIdentifier.identifier == identifier
+        WorkIdentifier.work_id == work_id,
+        WorkIdentifier.provider == provider,
+        WorkIdentifier.identifier == identifier,
     )
     return (await session.scalars(stmt)).first() is not None
 

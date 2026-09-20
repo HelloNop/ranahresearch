@@ -111,6 +111,8 @@ class SemanticScholarProvider(AcademicProvider):
             "limit": request.page_size,
             "fields": _FIELDS,
         }
+        if "year" in request.filters:
+            params["year"] = request.filters["year"]
         payload = await self._http.get_json("/paper/search", params=params)
         items = [map_semantic_scholar_paper(item) for item in payload.get("data", [])]
         next_offset = payload.get("next")

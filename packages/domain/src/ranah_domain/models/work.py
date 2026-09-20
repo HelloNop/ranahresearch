@@ -46,7 +46,7 @@ class WorkIdentifier(UUIDPrimaryKeyMixin, Base):
     identifier: Mapped[str] = mapped_column(String(300))
     url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
 
-    __table_args__ = (UniqueConstraint("provider", "identifier"),)
+    __table_args__ = (UniqueConstraint("work_id", "provider", "identifier"),)
 
 
 class WorkMetadataObservation(UUIDPrimaryKeyMixin, Base):

@@ -59,6 +59,7 @@ class ProviderHTTPClient:
         base_url: str,
         *,
         headers: dict[str, str] | None = None,
+        params: dict[str, str] | None = None,
         timeout_seconds: float = 15.0,
         max_retries: int = 3,
         backoff_base_seconds: float = 1.0,
@@ -66,7 +67,7 @@ class ProviderHTTPClient:
         trace_hook: TraceHook = _noop_trace,
     ) -> None:
         self._client = httpx.AsyncClient(
-            base_url=base_url, headers=headers or {}, timeout=timeout_seconds
+            base_url=base_url, headers=headers or {}, params=params, timeout=timeout_seconds
         )
         self._max_retries = max_retries
         self._backoff_base = backoff_base_seconds

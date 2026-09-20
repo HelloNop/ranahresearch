@@ -61,6 +61,10 @@ class ResearchIdea(UUIDPrimaryKeyMixin, Base):
 
 class ResearchPlan(UUIDPrimaryKeyMixin, Base):
     __tablename__ = "research_plans"
+    content: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    research_idea_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("research_ideas.id"), nullable=True
+    )
 
     project_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("research_projects.id", ondelete="CASCADE"), index=True
@@ -111,6 +115,12 @@ class ResearchQuestion(UUIDPrimaryKeyMixin, Base):
 
 class ResearchFramework(UUIDPrimaryKeyMixin, Base):
     __tablename__ = "research_frameworks"
+    research_plan_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("research_plans.id"), nullable=True, unique=True
+    )
+    created_by_agent_run_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("agent_runs.id"), nullable=True
+    )
 
     project_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("research_projects.id", ondelete="CASCADE"), index=True

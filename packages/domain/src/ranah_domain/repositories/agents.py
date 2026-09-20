@@ -2,6 +2,7 @@ import uuid
 from datetime import UTC, datetime
 
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ranah_domain.enums import AgentRunStatus
@@ -30,10 +31,14 @@ async def get_by_name_version(
 async def get_or_create_definition(
     session: AsyncSession, data: AgentDefinitionCreate
 ) -> AgentDefinition:
+    await session.execute(
+        insert(AgentDefinition)
+        .values(**data.model_dump())
+        .on_conflict_do_nothing(index_elements=["name", "version"])
+    )
     existing = await get_by_name_version(session, data.name, data.version)
-    if existing is not None:
-        return existing
-    return await create_agent_definition(session, data)
+    assert existing is not None
+    return existing
 
 
 async def start_agent_run(session: AsyncSession, data: AgentRunCreate) -> AgentRun:

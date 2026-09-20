@@ -8,7 +8,7 @@ import uuid
 
 from ranah_domain.enums import DuplicateDecisionType, DuplicateGroupType, WorkIdentifierType
 from ranah_domain.models.dedupe import DuplicateGroup
-from ranah_domain.models.work import WorkRecord, WorkVerification
+from ranah_domain.models.work import WorkMetadataObservation, WorkRecord, WorkVerification
 from ranah_domain.repositories import dedupe as dedupe_repo
 from ranah_domain.repositories import work as work_repo
 from ranah_domain.schemas.dedupe import (
@@ -22,6 +22,7 @@ from ranah_domain.schemas.work import (
     WorkRecordCreate,
     WorkVerificationCreate,
 )
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ranah_literature.deduplication import DuplicateMatch, decision_for_tier
@@ -60,6 +61,24 @@ async def persist_canonical_work(
                 break
 
     if existing is None:
+        for source in candidate.source_works:
+            if not source.provider_id:
+                continue
+            existing = await session.scalar(
+                select(WorkRecord)
+                .join(WorkMetadataObservation)
+                .where(
+                    WorkRecord.project_id == project_id,
+                    WorkMetadataObservation.provider == source.provider,
+                    WorkMetadataObservation.field_name == "provider_record_id",
+                    WorkMetadataObservation.field_value == {"value": source.provider_id},
+                )
+                .limit(1)
+            )
+            if existing is not None:
+                break
+
+    if existing is None:
         existing = await work_repo.create_work_record(
             session,
             WorkRecordCreate(
@@ -79,8 +98,19 @@ async def persist_canonical_work(
         )
 
     for source in candidate.source_works:
+        await work_repo.add_metadata_observation(
+            session,
+            WorkMetadataObservationCreate(
+                work_id=existing.id,
+                provider=source.provider,
+                field_name="provider_record_id",
+                field_value={"value": source.provider_id},
+            ),
+        )
         for identifier in source.identifiers:
-            if await work_repo.identifier_exists(session, source.provider, identifier.identifier):
+            if await work_repo.identifier_exists(
+                session, existing.id, source.provider, identifier.identifier
+            ):
                 continue
             await work_repo.add_identifier(
                 session,

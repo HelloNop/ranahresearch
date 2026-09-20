@@ -5,11 +5,15 @@ requires-python = ">=3.12"
 dependencies = [
     "ranah-workflow",
     "ranah-domain",
+    "ranah-agents",
+    "ranah-literature",
 ]
 
 [tool.uv.sources]
 ranah-workflow = { workspace = true }
 ranah-domain = { workspace = true }
+ranah-agents = { workspace = true }
+ranah-literature = { workspace = true }
 
 [build-system]
 requires = ["hatchling>=1.27,<2"]

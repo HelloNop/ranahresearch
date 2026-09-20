@@ -79,6 +79,7 @@ class LLMGateway:
         *,
         agent_run_id: str | None = None,
         temperature: float = 0.2,
+        result_hook: Callable[[StructuredGenerateResult], None] | None = None,
     ) -> _SchemaT:
         route = self._router.resolve(tier)
         provider = self._provider(route.provider)
@@ -100,6 +101,8 @@ class LLMGateway:
             self._trace("gateway.error", {"tier": tier, "error": type(exc).__name__})
             raise
         self._trace("gateway.usage", {"tier": tier, "usage": result.usage.model_dump()})
+        if result_hook is not None:
+            result_hook(result)
         try:
             return response_model.model_validate(result.data)
         except ValidationError as exc:

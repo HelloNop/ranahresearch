@@ -131,6 +131,8 @@ class AgentRunStatus(enum.StrEnum):
 
 
 class WorkflowRunStatus(enum.StrEnum):
+    PENDING = "PENDING"
+    PARTIAL = "PARTIAL"
     RUNNING = "RUNNING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"

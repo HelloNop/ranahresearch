@@ -96,7 +96,7 @@ class LiteratureDiscoveryService:
         if not provider_works:
             return report
 
-        candidates, work_ids_by_candidate_key = await self._normalize_and_persist(
+        candidates, work_ids_by_candidate_key = await self.normalize_and_persist(
             project_id, provider_works, report
         )
         await self._deduplicate(project_id, candidates, report)
@@ -161,7 +161,7 @@ class LiteratureDiscoveryService:
             provider_works.extend(page.items)
         return provider_works
 
-    async def _normalize_and_persist(
+    async def normalize_and_persist(
         self, project_id: uuid.UUID, provider_works: list[ProviderWork], report: DiscoveryReport
     ) -> tuple[list[DedupCandidate], dict[str, ProviderWork]]:
         candidates: list[DedupCandidate] = []

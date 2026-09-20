@@ -13,6 +13,16 @@ from ranah_domain.types import enum_column
 
 class SearchStrategy(UUIDPrimaryKeyMixin, Base):
     __tablename__ = "search_strategies"
+    content: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    research_plan_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("research_plans.id"), nullable=True
+    )
+    research_framework_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("research_frameworks.id"), nullable=True
+    )
+    created_by_agent_run_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("agent_runs.id"), nullable=True
+    )
 
     project_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("research_projects.id", ondelete="CASCADE"), index=True
@@ -46,6 +56,10 @@ class SearchQuery(UUIDPrimaryKeyMixin, Base):
 
 class SearchRun(UUIDPrimaryKeyMixin, Base):
     __tablename__ = "search_runs"
+    operation_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("workflow_runs.id"), nullable=True
+    )
+    __table_args__ = (UniqueConstraint("operation_id", "search_query_id"),)
 
     project_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("research_projects.id", ondelete="CASCADE"), index=True

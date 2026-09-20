@@ -894,12 +894,18 @@ version = "0.1.0"
 source = { editable = "apps/api" }
 dependencies = [
     { name = "fastapi" },
+    { name = "ranah-agents" },
+    { name = "ranah-domain" },
+    { name = "ranah-workflow" },
     { name = "uvicorn" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.115,<1" },
+    { name = "ranah-agents", editable = "packages/agents" },
+    { name = "ranah-domain", editable = "packages/domain" },
+    { name = "ranah-workflow", editable = "packages/workflow" },
     { name = "uvicorn", specifier = ">=0.34,<1" },
 ]
 
@@ -983,13 +989,17 @@ name = "ranah-worker-orchestration"
 version = "0.1.0"
 source = { editable = "workers/orchestration" }
 dependencies = [
+    { name = "ranah-agents" },
     { name = "ranah-domain" },
+    { name = "ranah-literature" },
     { name = "ranah-workflow" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "ranah-agents", editable = "packages/agents" },
     { name = "ranah-domain", editable = "packages/domain" },
+    { name = "ranah-literature", editable = "packages/literature" },
     { name = "ranah-workflow", editable = "packages/workflow" },
 ]
 
