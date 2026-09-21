@@ -6,7 +6,7 @@ Status: COMPLETE for the narrative/descriptive manuscript slice. Statistical poo
 
 The baseline before this batch was 208 passing backend tests and all existing frontend checks. The completed implementation now passes:
 
-- `make check` — 215 passed, 2 dependency deprecation warnings;
+- `make check` — 227 passed, 2 dependency deprecation warnings;
 - `uv run --all-packages --locked alembic -c packages/domain/alembic.ini check` — no upgrade operations detected;
 - `make build` — all Python distributions and the Next.js production build;
 - `npm --prefix apps/web run test` — 4 Playwright tests passed.
@@ -84,5 +84,36 @@ The manuscript workspace adds synthesis method selection and inspection, contrad
 ## Deferred work
 
 The following remain intentionally out of scope and are not started: EPIC-040 Outcome Data Model, EPIC-041 Meta-analysis Eligibility, EPIC-042 Effect Size Engine, EPIC-043 Pooling Engine, EPIC-044 Heterogeneity, EPIC-045 Forest Plot, EPIC-046 Sensitivity Analysis, EPIC-047 Statistical Reviewer, and EPIC-048 Meta-analysis UI. Full CSL breadth, journal-specific submission packages, and optional ZIP packaging can be added when those workflows require them.
+
+## Verification pass
+
+EPIC-030–039 was re-inspected after the implementation batch and the acceptance
+criteria were re-checked against the code rather than against the record above.
+The implementation held; the gap was coverage. The tests the batch specification
+asked for but did not leave behind were added:
+
+- `tests/test_manuscript_e2e.py` drives the real `ManuscriptGenerationWorkflow`
+  over a project whose corpus came from the actual extraction pipeline, and
+  asserts the whole chain: contradiction survival, a rejected overstated claim
+  kept out of the prose, claim → evidence → study → work traceability, Methods
+  and Results carrying the project's own persisted counts, version 1 surviving
+  an automatic revision, and Markdown/DOCX/PDF/LaTeX export.
+- A second end-to-end test proves an unresolved `BLOCKING` issue holds the
+  manuscript at `NEEDS_AUTHOR_REVIEW`, and a third proves the readiness gate
+  refuses a project with no evidence instead of drafting one.
+- `tests/test_manuscript_slice.py` gained the citation-resolver cases the
+  specification named (a work cited twice appearing once in the bibliography,
+  Vancouver numbering by first appearance, APA alphabetical ordering, missing
+  metadata reported rather than filled in), plus the synthesis, claim-review,
+  and writer guard rails that were previously asserted only in one direction.
+
+Both new end-to-end assertions were mutation-checked: disabling the blocking
+gate and corrupting the included-study count each fail the suite.
+
+One real defect surfaced and was fixed. `bibliography_entry` rendered an
+undated reference as `n.d..`, because the Vancouver template appends a full
+stop to a year that already carries one; the same applied to any title ending
+in a full stop. Rendered references are now collapsed once, and the behaviour
+is asserted.
 
 The repository is ready for EPIC-040–048.

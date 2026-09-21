@@ -109,10 +109,12 @@ def bibliography_entry(citation: Citation, style: CitationStyle, number: int) ->
     )
     doi = f" https://doi.org/{citation.doi}" if citation.doi else ""
     if style == CitationStyle.VANCOUVER:
-        return f"{number}. {authors}. {citation.title}. {publication}. {year}.{doi}".replace(
-            ". .", "."
-        )
-    return f"{authors} ({year}). {citation.title}. {publication}.{doi}".replace(". .", ".")
+        entry = f"{number}. {authors}. {citation.title}. {publication}. {year}.{doi}"
+    else:
+        entry = f"{authors} ({year}). {citation.title}. {publication}.{doi}"
+    # Absent fields and already-punctuated values ("n.d.", a title ending in a
+    # full stop) otherwise leave ". ." or ".." in the rendered reference.
+    return entry.replace(". .", ".").replace("..", ".")
 
 
 async def resolve_sections(
